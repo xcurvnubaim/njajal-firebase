@@ -69,7 +69,7 @@ app.post("/notes", verifyToken, async (req, res) => {
 
 // Get All notes (protected route)
 app.get("/notes", verifyToken, async (req, res) => {
-  const notesRef = db.collection("notes");
+  const notesRef = db.collection("notes").where("userId", "==", req.user.uid);
   const snapshot = await notesRef.get();
   const notes = [];
   snapshot.forEach((doc) => {
