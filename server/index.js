@@ -58,6 +58,26 @@ app.get("/user", verifyToken, async (req, res) => {
   res.json(userDoc.data());
 });
 
+// Create note (protected route)
+app.post("/notes", verifyToken, async (req, res) => {
+  const { notes } = req.body;
+  if (!notes) return res.status(400).json({ error: "Invalid request" });
+  const noteRef = db.collection("notes").doc();
+  await noteRef.set({ notes, createdAt: new Date(), userId: req.user.uid });
+  res.json({ id: noteRef.id, notes });
+});
+
+// Get All notes (protected route)
+app.get("/notes", verifyToken, async (req, res) => {
+  const notesRef = db.collection("notes");
+  const snapshot = await notesRef.get();
+  const notes = [];
+  snapshot.forEach((doc) => {
+    notes.push({ id: doc.id, ...doc.data() });
+  });
+  res.json(notes);
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
