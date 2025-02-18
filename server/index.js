@@ -78,8 +78,28 @@ app.get("/notes", verifyToken, async (req, res) => {
   res.json(notes);
 });
 
+// Get All Chats (protected route)
+app.get("/chats", verifyToken, async (_, res) => {
+  const chatsRef = db.collection("chats").orderBy("createdAt", "asc").limit(50);
+  const snapshot = await chatsRef.get();
+  const chats = [];
+  snapshot.forEach((doc) => {
+    chats.push({ id: doc.id, ...doc.data() });
+  });
+  res.json(chats);
+});
+
+// Create Chat (protected route)
+app.post("/chats", verifyToken, async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: "Invalid request" });
+  const chatRef = db.collection("chats").doc();
+  await chatRef.set({ text, createdAt: new Date(), uid: req.user.uid, name: req.user.name, avatar: req.user.picture });
+  res.json({ id: chatRef.id, text });
+});
+
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
